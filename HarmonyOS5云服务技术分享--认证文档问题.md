@@ -1,110 +1,110 @@
-各位开发者朋友好！本文将详细讲解如何基于HarmonyOS ArkTS框架集成华为AppGallery Connect（AGC）认证服务，涵盖从项目创建到SDK集成全流程。无论您是首次接入AGC服务，还是需要优化现有流程，本文均可提供完整指引。
+Hello, developers! This article will elaborate on how to integrate Huawei AppGallery Connect (AGC) authentication services based on the HarmonyOS ArkTS framework, covering the entire process from project creation to SDK integration. Whether you are accessing AGC services for the first time or need to optimize existing processes, this article provides a complete guide.  
 
-一、开发流程详解
-1. 创建项目与应用​​
-​​作用​​：项目是AGC资源的组织实体，支持同一应用的多平台版本（如手机、平板）集中管理。
 
-​​场景建议​​：
+### I. Detailed Development Process  
+1. **Create a Project and App**  
+   - **Role**: A project serves as the organizational entity for AGC resources, supporting centralized management of multi-platform versions (e.g., mobile phones, tablets) of the same app.  
+   - **Scenario Suggestions**:  
+     - Distinguish between testing and production environments by creating different projects.  
+     - Each project can independently manage authentication service configurations for different versions.  
 
-通过创建不同项目区分测试环境与生产环境。
-每个项目可独立管理不同版本的认证服务配置。
-​​2. 开通认证服务​​
-登录AGC控制台，进入目标项目，在「构建 > 认证服务」页面启用所需认证方式（如手机、邮箱、华为账号等）。
-​​3. 获取agconnect-services.json文件​​
-​​操作路径​​：AGC控制台 → 项目设置 → 应用配置 → 下载配置文件。
-​​作用​​：该文件包含应用与AGC服务通信的必要密钥和配置信息。
-​​4. 集成SDK​​
-​​核心依赖​​：AGC SDK + 认证服务SDK。
+2. **Enable Authentication Services**  
+   Log in to the AGC console, go to the target project, and enable the required authentication methods (e.g., mobile phone, email, Huawei Account, etc.) on the *Build > Authentication Service* page.  
 
-​​详细步骤​​：
+3. **Obtain the agconnect-services.json File**  
+   - **Operation Path**: AGC Console → Project Settings → App Configuration → Download the configuration file.  
+   - **Role**: This file contains the necessary keys and configuration information for the app to communicate with AGC services.  
 
-配置HarmonyOS工程依赖（见下文「集成SDK」章节）。
-初始化SDK并添加网络权限。
-​​5. 实现账号登录认证​​
-​​支持方式​​：
+4. **Integrate the SDK**  
+   - **Core Dependencies**: AGC SDK + Authentication Service SDK.  
+   - **Detailed Steps**:  
+     - Configure HarmonyOS project dependencies (see the *SDK Integration* section below).  
+     - Initialize the SDK and add network permissions.  
 
-​​标准登录​​：手机、邮箱、华为账号、自有账号、匿名账号。
+5. **Implement Account Login Authentication**  
+   - **Supported Methods**:  
+     - Standard login: Mobile phone, email, Huawei Account, self-owned account, anonymous account.  
+   - **Advanced Features**:  
+     - Account linking: Supports associating multiple account systems with the same user identity.  
+     - Anonymous to real-name: Upgrade anonymous users to real-name accounts.  
 
-​​高级功能​​：
+6. **Logout**  
+   - **Function Description**:  
+     - Clear local user information and tokens.  
+     - Applicable scenarios: User switches accounts or temporarily logs out.  
 
-​​关联账号​​：支持多账号体系关联同一用户身份。
-​​匿名转正​​：匿名用户升级为实名账号。
-​​6. 登出​​
-​​功能说明​​：
+7. **Account Deletion**  
+   - **Security Requirements**:  
+     - Users must initiate deletion actively to ensure compliance with privacy regulations.  
+     - After deletion, user data on the AGC side will be permanently deleted.  
 
-清除本地用户信息及Token。
-适用场景：用户切换账号或临时退出登录。
-​​7. 销户​​
-​​安全要求​​：
 
-用户需主动发起注销，确保符合隐私合规要求。
-销户后，AGC侧用户数据将被永久删除。
-二、集成SDK全流程
-​​前提条件​​
-​​开发工具​​：DevEco Studio 5.0.3.100+
+### II. Full Process of SDK Integration  
+#### Prerequisites  
+- **Development Tools**: DevEco Studio 5.0.3.100+  
+- **SDK Version**:  
+  - Compile SDK Version ≥ 12  
+  - Compatible SDK Version ≥ 12  
 
-​​SDK版本​​：
+1. **Add the App Configuration File**  
+   Copy agconnect-services.json to the project directory:  
+   `AppScope/resources/rawfile/`  
+   - **Note**: If the rawfile directory does not exist, create it manually.  
 
-Compile SDK Version ≥ 12
-Compatible SDK Version ≥ 12
-​​1. 添加应用配置文件​​
-将agconnect-services.json拷贝至工程目录：
+2. **Configure SDK Dependencies**  
+   - **Method 1: Through oh-package.json5**  
+     Add dependencies in the app-level oh-package.json5:  
+     ```json  
+     "dependencies": {  
+       "@hw-agconnect/auth": "^1.0.4"  
+     }  
+     ```  
+     Click *Sync Now* in the upper right corner to synchronize the configuration.  
+   - **Method 2: Command Line Installation**  
+     Enter the entry directory and execute the command:  
+     `ohpm install @hw-agconnect/auth`  
 
-AppScope/resources/rawfile/  
-​​注意​​：若rawfile目录不存在，需手动创建。
-​​2. 配置SDK依赖​​
-​​方式一：通过oh-package.json5​​
+3. **Initialize the SDK**  
+   Initialize in the onCreate of EntryAbility.ets:  
+   ```typescript  
+   import auth from '@hw-agconnect/auth';  
 
-在应用级oh-package.json5中添加依赖：
+   onCreate(want, launchParam) {  
+     // Read the configuration file  
+     let file = this.context.resourceManager.getRawFileContentSync('agconnect-services.json');  
+     let json: string = buffer.from(file.buffer).toString();  
+     // Initialize the AGC SDK  
+     auth.init(this.context, json);  
+   }  
+   ```  
+   - **Add Network Permissions**: Declare in module.json5:  
+     ```json  
+     "requestPermissions": [  
+       { "name": "ohos.permission.INTERNET" }  
+     ]  
+     ```  
 
-"dependencies": {  
-  "@hw-agconnect/auth": "^1.0.4"  
-}  
-点击右上角 ​​Sync Now​​ 同步配置。
+4. **Manually Set Client ID/Secret (Optional)**  
+   - **Applicable Scenarios**: When the configuration file does not contain keys (when downloading, check *Do not include keys*).  
+   - **Operation Steps**:  
+     - Obtain the Client ID and Secret in *Project Settings > General* of the AGC console.  
+     - Supplement parameters after initialization:  
+       ```typescript  
+       auth.setClientId("xxx");  // Replace with the actual value  
+       auth.setClientSecret("xxx");  
+       ```  
 
-​​方式二：命令行安装​​
+5. **Configure Obfuscation Rules**  
+   - **Rules File**: entry/obfuscation-rules.txt  
+   - **Add Content**:  
+     ```  
+     -keep  
+     XXX/oh_modules/@hw-agconnect/auth  
+     ```  
+     - **Path Description**: XXX is the actual path of the SDK in oh_modules (e.g., entry/oh_modules).  
 
-进入entry目录执行命令：
 
-ohpm install @hw-agconnect/auth  
-​​3. 初始化SDK​​
-在EntryAbility.ets的onCreate中初始化：
+### III. Conclusion  
+Through this article, you have completed the process of integrating AGC authentication services with HarmonyOS ArkTS. In the future, you can expand login methods (such as third-party social accounts) based on business needs and monitor user behavior data through the AGC console. If you encounter issues in practice, please visit the Huawei Developer Forum or AGC official documentation for technical support.  
 
-import auth from '@hw-agconnect/auth';  
-
-onCreate(want, launchParam) {  
-  // 读取配置文件  
-  let file = this.context.resourceManager.getRawFileContentSync('agconnect-services.json');  
-  let json: string = buffer.from(file.buffer).toString();  
-  // 初始化AGC SDK  
-  auth.init(this.context, json);  
-}  
-​​添加网络权限​​：
-在module.json5中声明：
-
-"requestPermissions": [  
-  { "name": "ohos.permission.INTERNET" }  
-]  
-​​4. 手动设置Client ID/Secret（可选）​​
-​​适用场景​​：配置文件未包含密钥时（下载时勾选“不包含密钥”）。
-
-​​操作步骤​​：
-
-在AGC控制台「项目设置 > 常规」获取Client ID和Secret。
-
-初始化后补充参数：
-
-auth.setClientId("xxx");  // 替换为实际值  
-auth.setClientSecret("xxx");  
-​​5. 配置混淆规则​​
-​​规则文件​​：entry/obfuscation-rules.txt
-
-​​添加内容​​：
-
--keep  
-XXX/oh_modules/@hw-agconnect/auth  
-​​路径说明​​：XXX为SDK在oh_modules中的实际路径（如entry/oh_modules）。
-三、结尾总结
-通过本文，您已完成AGC认证服务的HarmonyOS ArkTS集成流程。后续可结合业务需求扩展登录方式（如第三方社交账号），并通过AGC控制台监控用户行为数据。如果在实践中遇到问题，欢迎访问华为开发者论坛或AGC官方文档获取技术支持。
-
-如果有其他想了解的功能，欢迎在评论区留言告诉我！咱们下期见~ 👋
+If there are other features you want to learn about, feel free to leave a message in the comments! See you next time~ 👋
